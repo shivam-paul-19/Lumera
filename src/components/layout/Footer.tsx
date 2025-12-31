@@ -40,9 +40,9 @@ const FacebookIcon = () => (
 
 const features = [
   { icon: <Tag className="w-5 h-5 md:w-6 md:h-6" />, title: 'Exclusive Offers' },
-  { icon: <Gift className="w-5 h-5 md:w-6 md:h-6" />, title: 'Free Samples' },
-  { icon: <Truck className="w-5 h-5 md:w-6 md:h-6" />, title: 'Free Shipping' },
-  { icon: <Package className="w-5 h-5 md:w-6 md:h-6" />, title: 'Personalised Gifts' },
+  { icon: <Gift className="w-5 h-5 md:w-6 md:h-6" />, title: 'Signature Scents' },
+  { icon: <Truck className="w-5 h-5 md:w-6 md:h-6" />, title: 'Handled With Care' },
+  { icon: <Package className="w-5 h-5 md:w-6 md:h-6" />, title: 'Made Personal' },
 ]
 
 const customerServiceLinks = [
