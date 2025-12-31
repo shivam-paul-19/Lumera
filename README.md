@@ -182,4 +182,4 @@ For questions or support, contact:
 
 ---
 
-© 2024 Lumera. Melt Into Luxury.
+© 2025 Lumera. Melt Into Luxury.
