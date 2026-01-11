@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Header, Footer } from '@/components/layout'
@@ -342,7 +342,7 @@ function FilterSection({
   )
 }
 
-export default function CollectionsPage() {
+function CollectionsContent() {
   const searchParams = useSearchParams()
   const collectionParam = searchParams.get('collection')
 
@@ -657,5 +657,13 @@ export default function CollectionsPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function CollectionsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream-100" />}>
+      <CollectionsContent />
+    </Suspense>
   )
 }
