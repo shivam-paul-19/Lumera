@@ -5,54 +5,59 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/layout'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Package, Scissors, Flame, Sofa, Clock } from 'lucide-react'
 
-// Color palette - Using Burgundy 700 throughout (brighter shade)
+// Color palette - Using Burgundy 900 throughout (darker shade)
 const colors = {
   champagneGold: '#C9A24D',
   softIvory: '#F6F1EB',
-  burgundy: '#ab2145',         // Burgundy 700 - Brighter burgundy color
+  burgundy: '#800020',         // Burgundy 900 - Darker burgundy color
   velvetBeige: '#E7DED4',
   mutedRoseGold: '#B8A090',
   warmGrey: '#6E6E6E',
 }
 
-// Ritual steps data
+// Ritual steps data with icons
 const ritualSteps = [
   {
+    id: 1,
     number: '01',
     title: 'Unbox',
     subtitle: 'Slowly',
-    description: 'Savor the anticipation. Let the unveiling be part of the experience.',
-    image: 'https://images.unsplash.com/photo-1608181831718-2501c8a2543d?w=600&h=800&fit=crop&q=80',
+    description: 'Slowly. Let the anticipation be part of the experience.',
+    icon: <Package className="w-6 h-6" />,
   },
   {
+    id: 2,
     number: '02',
     title: 'Trim',
     subtitle: 'The Wick',
-    description: 'A quarter inch. Precision is an act of care.',
-    image: 'https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=600&h=800&fit=crop&q=80',
+    description: 'The wick to ¼ inch. Precision is an act of care.',
+    icon: <Scissors className="w-6 h-6" />,
   },
   {
+    id: 3,
     number: '03',
     title: 'Light',
     subtitle: 'With Intention',
-    description: 'Hold the flame. Breathe. Set your intention.',
-    image: 'https://images.unsplash.com/photo-1594897030264-ab7d87efc473?w=600&h=800&fit=crop&q=80',
+    description: 'With intention. Hold the flame. Set your purpose.',
+    icon: <Flame className="w-6 h-6" />,
   },
   {
+    id: 4,
     number: '04',
     title: 'Sit',
     subtitle: 'With the Fragrance',
-    description: 'Let the notes unfold. Each layer tells a story.',
-    image: '/images/sit-candle.jpg',
+    description: 'With the fragrance. Let each layer tell its story.',
+    icon: <Sofa className="w-6 h-6" />,
   },
   {
+    id: 5,
     number: '05',
     title: 'Linger',
     subtitle: 'In the Moment',
-    description: 'Time slows. This is your sanctuary.',
-    image: '/images/linger-candle.jpg',
+    description: 'In the moment. Time slows. This is your sanctuary.',
+    icon: <Clock className="w-6 h-6" />,
   },
 ]
 
@@ -196,98 +201,96 @@ export default function RitualsPage() {
         </section>
 
         {/* ============================================
-            SECTION 2: VERTICAL RITUAL TIMELINE
-            Mobile: Each step takes 60%+ viewport height
-            48px vertical padding between steps
+            SECTION 2: VERTICAL TIMELINE WITH ICONS
+            Matches the home page style but in vertical layout
             ============================================ */}
         <section className="py-16 md:py-24" style={{ backgroundColor: colors.softIvory }}>
-          <div className="px-4 md:px-6 max-w-7xl mx-auto">
+          <div className="px-4 md:px-6 max-w-4xl mx-auto">
             {/* Section Header */}
             <FadeInOnScroll>
-              <div className="text-center mb-12 md:mb-20">
+              <div className="text-center mb-12 md:mb-16">
                 <p
-                  className="text-xs tracking-[0.3em] uppercase mb-3"
+                  className="text-xs md:text-sm font-sans tracking-[0.2em] uppercase mb-4"
                   style={{ color: colors.champagneGold }}
                 >
                   The Sacred Process
                 </p>
                 <h2
-                  className="font-serif text-3xl md:text-5xl"
+                  className="font-serif text-3xl md:text-4xl lg:text-5xl mb-6"
                   style={{ color: colors.burgundy }}
                 >
                   The Lumera Ritual
                 </h2>
+                <div
+                  className="w-16 h-0.5 mx-auto"
+                  style={{ background: `linear-gradient(to right, ${colors.burgundy}, ${colors.champagneGold})` }}
+                />
               </div>
             </FadeInOnScroll>
 
-            {/* Vertical Timeline - Mobile First */}
+            {/* Vertical Timeline with Icons */}
             <div className="relative">
-              {/* Vertical Line for Desktop */}
+              {/* Vertical Timeline Line */}
               <div
-                className="absolute left-1/2 top-0 bottom-0 w-[0.5px] hidden lg:block -translate-x-1/2"
-                style={{ backgroundColor: `${colors.champagneGold}40` }}
+                className="absolute left-8 md:left-1/2 top-0 bottom-0 w-[1px] md:-translate-x-1/2"
+                style={{ backgroundColor: `${colors.champagneGold}50` }}
               />
 
-              {/* Steps - Vertical Stack for Mobile */}
-              <div className="space-y-12 md:space-y-0">
+              {/* Steps */}
+              <div className="space-y-0">
                 {ritualSteps.map((step, index) => (
-                  <FadeInOnScroll key={step.number} delay={0.1}>
-                    {/* Mobile: Full-width vertical card */}
-                    <div
-                      className="min-h-[60vh] flex flex-col justify-center py-12 md:py-0 md:min-h-0"
-                      style={{ paddingTop: index === 0 ? '0' : '48px', paddingBottom: '48px' }}
-                    >
-                      {/* Desktop: Alternating layout */}
-                      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center ${
-                        index % 2 === 1 ? 'lg:direction-rtl' : ''
-                      }`}>
-                        {/* Image Side */}
-                        <div className={`relative ${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-                          <div className="relative aspect-[3/4] max-w-sm mx-auto lg:max-w-none overflow-hidden rounded-sm shadow-lg">
-                            <Image
-                              src={step.image}
-                              alt={step.title}
-                              fill
-                              className="object-cover"
-                            />
-                            {/* Step Number Overlay */}
-                            <div
-                              className="absolute top-4 left-4 text-5xl font-light tracking-wider"
-                              style={{
-                                color: colors.champagneGold,
-                                fontFamily: 'Georgia, serif',
-                                textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                              }}
-                            >
-                              {step.number}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Text Side */}
-                        <div className={`text-center lg:text-left ${index % 2 === 1 ? 'lg:order-1 lg:text-right' : ''}`}>
-                          <h3
-                            className="font-serif text-2xl md:text-3xl mb-2"
-                            style={{ color: colors.burgundy }}
-                          >
-                            {step.title}
-                          </h3>
-                          <p
-                            className="text-base italic mb-4"
-                            style={{ color: colors.mutedRoseGold }}
-                          >
-                            {step.subtitle}
-                          </p>
-                          <p
-                            className="text-sm leading-relaxed max-w-xs mx-auto lg:mx-0"
-                            style={{ color: `${colors.burgundy}99` }}
-                          >
-                            {step.description}
-                          </p>
-                        </div>
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-50px' }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className="relative py-8 md:py-12"
+                  >
+                    {/* Icon Circle - Centered on desktop */}
+                    <div className="absolute left-8 md:left-1/2 top-8 md:top-12 -translate-x-1/2 z-10">
+                      <div
+                        className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
+                        style={{
+                          backgroundColor: colors.burgundy,
+                          color: colors.softIvory,
+                        }}
+                      >
+                        {step.icon}
                       </div>
                     </div>
-                  </FadeInOnScroll>
+
+                    {/* Content - Mobile: Right of icon, Desktop: Alternating sides */}
+                    <div className={`ml-20 md:ml-0 md:w-[45%] ${
+                      index % 2 === 0
+                        ? 'md:mr-auto md:pr-8 md:text-right'
+                        : 'md:ml-auto md:pl-8 md:text-left'
+                    }`}>
+                      {/* Step Number */}
+                      <span
+                        className="text-xs font-sans tracking-widest mb-1 block"
+                        style={{ color: colors.champagneGold }}
+                      >
+                        {step.number}
+                      </span>
+
+                      {/* Title */}
+                      <h3
+                        className="font-serif text-2xl md:text-3xl mb-3"
+                        style={{ color: colors.burgundy }}
+                      >
+                        {step.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p
+                        className="text-sm md:text-base font-sans leading-relaxed"
+                        style={{ color: '#1C1C1C' }}
+                      >
+                        {step.description}
+                      </p>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </div>

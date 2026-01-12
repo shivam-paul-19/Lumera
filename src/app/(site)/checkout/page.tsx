@@ -36,7 +36,7 @@ const indianStates = [
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, subtotal, clearCart } = useCart()
+  const { items, subtotal, clearCart, orderNote, orderNoteFee } = useCart()
   const { user, isAuthenticated } = useAuth()
   const { addOrder } = useOrders()
 
@@ -106,7 +106,7 @@ export default function CheckoutPage() {
 
   const shippingThreshold = 999
   const shippingCost = subtotal >= shippingThreshold ? 0 : 99
-  const totalAmount = subtotal + shippingCost - couponDiscount
+  const totalAmount = subtotal + shippingCost + orderNoteFee - couponDiscount
 
   const validateShipping = (): boolean => {
     const newErrors: Partial<ShippingAddress> = {}
@@ -842,6 +842,13 @@ export default function CheckoutPage() {
                     )}
                   </span>
                 </div>
+
+                {orderNoteFee > 0 && (
+                  <div className="flex justify-between text-sm font-sans">
+                    <span className="text-burgundy-700/60 tracking-wide">Gift Note</span>
+                    <span className="text-burgundy-700">{formatPrice(orderNoteFee)}</span>
+                  </div>
+                )}
 
                 {couponDiscount > 0 && (
                   <div className="flex justify-between text-sm font-sans">

@@ -80,16 +80,16 @@ export default function LumeraRitual() {
         </motion.div>
 
         {/* Ritual Steps Container */}
-        {/* Mobile: flex-col (vertical), Desktop: flex-row (horizontal) */}
+        {/* Mobile: Vertical timeline on left, Desktop: Horizontal centered */}
         <div className="relative">
-          {/* Timeline Line - Vertical on mobile, Horizontal on desktop */}
-          {/* Mobile: Champagne Gold vertical line */}
-          <div 
-            className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2 md:hidden"
-            style={{ backgroundColor: colors.champagneGold }}
+          {/* Timeline Line */}
+          {/* Mobile: Vertical line on left - stops before last item */}
+          <div
+            className="absolute left-8 top-0 w-[1px] -translate-x-1/2 md:hidden"
+            style={{ backgroundColor: `${colors.champagneGold}`, height: 'calc(100% - 5rem)' }}
           />
-          {/* Desktop: Champagne Gold horizontal line */}
-          <div 
+          {/* Desktop: Horizontal line */}
+          <div
             className="absolute top-8 left-0 right-0 h-[1px] hidden md:block"
             style={{ backgroundColor: `${colors.champagneGold}50` }}
           />
@@ -103,12 +103,13 @@ export default function LumeraRitual() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
-                className="flex flex-col items-center text-center pb-12 md:pb-0 md:flex-1"
+                className="relative pb-10 md:pb-0 md:flex-1 md:flex md:flex-col md:items-center md:text-center"
               >
-                {/* Burgundy 900 Circle with Icon */}
-                <div 
-                  className="relative z-10 w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg"
-                  style={{ 
+                {/* Icon Circle */}
+                {/* Mobile: Absolute on left timeline, Desktop: Relative centered */}
+                <div
+                  className="absolute left-8 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 md:mb-4"
+                  style={{
                     backgroundColor: colors.burgundy815,
                     color: colors.softIvory,
                   }}
@@ -116,29 +117,33 @@ export default function LumeraRitual() {
                   {step.icon}
                 </div>
 
-                {/* Step Number - Small gold indicator */}
-                <span 
-                  className="text-xs font-sans tracking-widest mb-2"
-                  style={{ color: colors.champagneGold }}
-                >
-                  0{step.id}
-                </span>
+                {/* Content */}
+                {/* Mobile: Right of icon, Desktop: Below icon centered */}
+                <div className="ml-20 md:ml-0">
+                  {/* Step Number */}
+                  <span
+                    className="text-xs font-sans tracking-widest mb-1 block"
+                    style={{ color: colors.champagneGold }}
+                  >
+                    0{step.id}
+                  </span>
 
-                {/* Title - Charcoal Black */}
-                <h3 
-                  className="font-serif text-xl md:text-2xl mb-2"
-                  style={{ color: colors.charcoalBlack }}
-                >
-                  {step.title}
-                </h3>
+                  {/* Title */}
+                  <h3
+                    className="font-serif text-xl md:text-2xl mb-2"
+                    style={{ color: colors.burgundy815 }}
+                  >
+                    {step.title}
+                  </h3>
 
-                {/* Description - Charcoal Black, 16px (text-base) */}
-                <p 
-                  className="text-base font-sans leading-relaxed max-w-[200px] md:max-w-[180px]"
-                  style={{ color: colors.charcoalBlack }}
-                >
-                  {step.description}
-                </p>
+                  {/* Description */}
+                  <p
+                    className="text-sm md:text-base font-sans leading-relaxed max-w-[220px] md:max-w-[180px]"
+                    style={{ color: colors.charcoalBlack }}
+                  >
+                    {step.description}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>

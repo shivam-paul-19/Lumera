@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Collection {
   id: number
@@ -56,6 +58,28 @@ const collections: Collection[] = [
 ]
 
 export default function CollectionsSection() {
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+    }
+  }
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = scrollContainerRef.current.clientWidth * 0.85
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      })
+    }
+  }
+
   return (
     <section className="section-spacing bg-gradient-to-b from-cream-100 to-cream-200 overflow-hidden">
       <div className="section-container">
@@ -80,8 +104,47 @@ export default function CollectionsSection() {
           </p>
         </motion.div>
 
-        {/* Collections Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Collections - Horizontal scroll on mobile, grid on desktop */}
+        <div className="relative">
+          {/* Left Arrow - mobile only */}
+          <button
+            onClick={() => scroll('left')}
+            className={`lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 ${
+              canScrollLeft
+                ? 'opacity-100 scale-100'
+                : 'opacity-0 scale-75 pointer-events-none'
+            }`}
+            style={{
+              backgroundColor: '#800020',
+              border: '1px solid rgba(201, 162, 77, 0.4)'
+            }}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-6 h-6 text-[#C9A24D]" />
+          </button>
+
+          {/* Right Arrow - mobile only */}
+          <button
+            onClick={() => scroll('right')}
+            className={`lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 ${
+              canScrollRight
+                ? 'opacity-100 scale-100'
+                : 'opacity-0 scale-75 pointer-events-none'
+            }`}
+            style={{
+              backgroundColor: '#800020',
+              border: '1px solid rgba(201, 162, 77, 0.4)'
+            }}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-6 h-6 text-[#C9A24D]" />
+          </button>
+
+          <div
+            ref={scrollContainerRef}
+            onScroll={checkScroll}
+            className="flex lg:grid lg:grid-cols-3 gap-6 lg:gap-8 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory scrollbar-hide"
+          >
           {collections.map((collection, index) => (
             <motion.div
               key={collection.id}
@@ -89,18 +152,18 @@ export default function CollectionsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
-              className="group"
+              className="group flex-shrink-0 w-[85vw] sm:w-[70vw] lg:w-auto snap-center"
             >
-              <Link href={`/collections?collection=${collection.slug}`} className="block">
-                <div className="relative overflow-hidden bg-white border border-burgundy-700/10 hover:border-burgundy-700/20 transition-all duration-500 hover:shadow-luxury-lg">
+              <Link href={`/collections?collection=${collection.slug}`} className="block h-full">
+                <div className="relative overflow-hidden bg-white border border-burgundy-700/10 hover:border-burgundy-700/20 transition-all duration-500 hover:shadow-luxury-lg h-full flex flex-col">
                   {/* Image Container */}
-                  <div className="relative h-80 overflow-hidden">
+                  <div className="relative h-64 sm:h-80 overflow-hidden flex-shrink-0">
                     <Image
                       src={collection.image}
                       alt={collection.name}
                       fill
                       className="object-cover transition-transform duration-700 ease-luxury group-hover:scale-105"
-                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      sizes="(max-width: 1024px) 85vw, 33vw"
                     />
 
                     {/* Gradient Overlay */}
@@ -111,10 +174,10 @@ export default function CollectionsSection() {
                       <p className="text-xs font-sans tracking-wider uppercase text-cream-100/70 mb-2">
                         {collection.mood}
                       </p>
-                      <h3 className="font-serif text-3xl text-cream-100 mb-1">
+                      <h3 className="font-serif text-2xl sm:text-3xl text-cream-100 mb-1">
                         {collection.name}
                       </h3>
-                      <p className="font-serif text-lg text-champagne-400 italic">
+                      <p className="font-serif text-base sm:text-lg text-champagne-400 italic">
                         {collection.tagline}
                       </p>
                     </div>
@@ -127,15 +190,15 @@ export default function CollectionsSection() {
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="p-6">
-                    {/* Description */}
-                    <p className="text-sm font-sans text-burgundy-700/70 mb-4 leading-relaxed">
+                  {/* Content - flex-grow to ensure equal height */}
+                  <div className="p-6 flex flex-col flex-grow">
+                    {/* Description - fixed height with line clamp */}
+                    <p className="text-sm font-sans text-burgundy-700/70 mb-4 leading-relaxed line-clamp-3 flex-grow">
                       {collection.description}
                     </p>
 
                     {/* Price Range & CTA */}
-                    <div className="flex items-center justify-between pt-4 border-t border-burgundy-700/10">
+                    <div className="flex items-center justify-between pt-4 border-t border-burgundy-700/10 mt-auto">
                       <span className="text-sm font-sans text-burgundy-700/60">
                         {collection.priceRange}
                       </span>
@@ -161,6 +224,7 @@ export default function CollectionsSection() {
               </Link>
             </motion.div>
           ))}
+          </div>
         </div>
 
         {/* Featured Products CTA */}

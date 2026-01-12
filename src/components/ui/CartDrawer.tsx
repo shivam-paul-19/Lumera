@@ -18,6 +18,7 @@ export default function CartDrawer() {
     setIsCartOpen,
     orderNote,
     setOrderNote,
+    orderNoteFee,
   } = useCart()
 
   const [isNoteOpen, setIsNoteOpen] = useState(false)
@@ -230,6 +231,7 @@ export default function CartDrawer() {
                     className="flex items-center gap-2 py-2 min-h-[44px] text-sm font-sans text-lumera-charcoal hover:text-lumera-burgundy transition-colors"
                   >
                     <span>Leave A Note With Order</span>
+                    <span className="text-xs font-sans px-2 py-0.5" style={{ backgroundColor: 'rgba(201, 162, 77, 0.2)', color: '#800020' }}>₹49</span>
                     {isNoteOpen ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -249,7 +251,7 @@ export default function CartDrawer() {
                         <textarea
                           value={orderNote}
                           onChange={(e) => setOrderNote(e.target.value)}
-                          placeholder="Add special instructions, gift messages, or delivery notes..."
+                          placeholder="Add gift messages..."
                           className="w-full mt-3 p-4 min-h-[100px] bg-lumera-beige/50 border border-lumera-charcoal/10 text-lumera-charcoal placeholder:text-lumera-charcoal/40 font-sans text-base resize-none focus:outline-none focus:border-lumera-burgundy transition-colors"
                           rows={3}
                           maxLength={500}
@@ -271,6 +273,15 @@ export default function CartDrawer() {
                     </span>
                   </div>
 
+                  {orderNoteFee > 0 && (
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-sans text-base text-lumera-charcoal/70">Gift Note</span>
+                      <span className="font-serif text-lumera-charcoal">
+                        {formatPrice(orderNoteFee)}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between mb-4">
                     <span className="font-sans text-base text-lumera-charcoal/70">Shipping</span>
                     <span className="font-serif text-lumera-charcoal">
@@ -289,7 +300,7 @@ export default function CartDrawer() {
                     className="w-full flex items-center justify-center py-4 min-h-[56px] text-base font-sans font-medium tracking-wider uppercase transition-all duration-300 hover:shadow-lg mb-3"
                     style={{ backgroundColor: '#4A0404', color: '#C9A24D' }}
                   >
-                    Checkout - {formatPrice(subtotal)}
+                    Checkout - {formatPrice(subtotal + orderNoteFee)}
                   </Link>
 
                   {/* Continue Shopping */}

@@ -349,33 +349,6 @@ export default function Header() {
                   +91 9625205260
                 </a>
               </div>
-
-              {/* Social Icons - WhatsApp & Instagram at bottom */}
-              <div className="pt-6 border-t border-lumera-charcoal/10">
-                <p className="text-xs font-sans tracking-wider uppercase text-lumera-charcoal/50 mb-4">
-                  Follow Us
-                </p>
-                <div className="flex items-center gap-4">
-                  <a
-                    href="https://wa.me/919625205260"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full bg-[#25D366] flex items-center justify-center text-white hover:scale-105 transition-transform"
-                    aria-label="WhatsApp"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                  </a>
-                  <a
-                    href="https://www.instagram.com/lumeracandles.in"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#dc2743] flex items-center justify-center text-white hover:scale-105 transition-transform"
-                    aria-label="Instagram"
-                  >
-                    <InstagramIcon />
-                  </a>
-                </div>
-              </div>
             </div>
           </motion.div>
         )}

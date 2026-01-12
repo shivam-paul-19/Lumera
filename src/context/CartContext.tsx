@@ -27,6 +27,7 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void
   orderNote: string
   setOrderNote: (note: string) => void
+  orderNoteFee: number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -128,6 +129,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     0
   )
 
+  // Charge ₹49 if order note is filled
+  const orderNoteFee = orderNote.trim().length > 0 ? 49 : 0
+
   return (
     <CartContext.Provider
       value={{
@@ -144,6 +148,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsCartOpen,
         orderNote,
         setOrderNote,
+        orderNoteFee,
       }}
     >
       {children}

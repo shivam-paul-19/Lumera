@@ -1,8 +1,9 @@
 'use client'
 
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { Sparkles, Moon, Sun, Heart } from 'lucide-react'
+import { Sparkles, Moon, Sun, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Ritual {
   id: number
@@ -80,6 +81,28 @@ const itemVariants = {
 }
 
 export default function Rituals() {
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+    }
+  }
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 300
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      })
+    }
+  }
+
   return (
     <section className="section-spacing bg-ivory-100 overflow-hidden">
       <div className="section-container">
@@ -102,19 +125,56 @@ export default function Rituals() {
           </p>
         </motion.div>
 
-        {/* Rituals Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {rituals.map((ritual) => (
+        {/* Rituals Grid - Horizontal scroll on mobile */}
+        <div className="relative">
+          {/* Left Arrow - mobile only */}
+          <button
+            onClick={() => scroll('left')}
+            className={`lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+              canScrollLeft
+                ? 'opacity-100 scale-100'
+                : 'opacity-0 scale-75 pointer-events-none'
+            }`}
+            style={{
+              backgroundColor: '#800020',
+              border: '1px solid rgba(201, 162, 77, 0.4)'
+            }}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#C9A24D]" />
+          </button>
+
+          {/* Right Arrow - mobile only */}
+          <button
+            onClick={() => scroll('right')}
+            className={`lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+              canScrollRight
+                ? 'opacity-100 scale-100'
+                : 'opacity-0 scale-75 pointer-events-none'
+            }`}
+            style={{
+              backgroundColor: '#800020',
+              border: '1px solid rgba(201, 162, 77, 0.4)'
+            }}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-5 h-5 text-[#C9A24D]" />
+          </button>
+
+          <motion.div
+            ref={scrollContainerRef}
+            onScroll={checkScroll}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            className="flex lg:grid lg:grid-cols-4 gap-4 lg:gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory scrollbar-hide"
+          >
+            {rituals.map((ritual) => (
             <motion.div
               key={ritual.id}
               variants={itemVariants}
-              className="group"
+              className="group flex-shrink-0 w-[280px] sm:w-[300px] lg:w-auto snap-start"
             >
               <div className="relative h-full bg-white/50 border border-burgundy-700/10 hover:border-burgundy-700/20 transition-all duration-500 hover:shadow-luxury">
                 {/* Image */}
@@ -163,7 +223,8 @@ export default function Rituals() {
               </div>
             </motion.div>
           ))}
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Bottom CTA */}
         <motion.div
