@@ -127,40 +127,6 @@ export default function Rituals() {
 
         {/* Rituals Grid - Horizontal scroll on mobile */}
         <div className="relative">
-          {/* Left Arrow - mobile only */}
-          <button
-            onClick={() => scroll('left')}
-            className={`lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-              canScrollLeft
-                ? 'opacity-100 scale-100'
-                : 'opacity-0 scale-75 pointer-events-none'
-            }`}
-            style={{
-              backgroundColor: '#800020',
-              border: '1px solid rgba(201, 162, 77, 0.4)'
-            }}
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="w-5 h-5 text-[#C9A24D]" />
-          </button>
-
-          {/* Right Arrow - mobile only */}
-          <button
-            onClick={() => scroll('right')}
-            className={`lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-              canScrollRight
-                ? 'opacity-100 scale-100'
-                : 'opacity-0 scale-75 pointer-events-none'
-            }`}
-            style={{
-              backgroundColor: '#800020',
-              border: '1px solid rgba(201, 162, 77, 0.4)'
-            }}
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="w-5 h-5 text-[#C9A24D]" />
-          </button>
-
           <motion.div
             ref={scrollContainerRef}
             onScroll={checkScroll}
@@ -224,6 +190,41 @@ export default function Rituals() {
             </motion.div>
           ))}
           </motion.div>
+
+          {/* Scroll Arrows - mobile only, positioned below cards */}
+          <div className="lg:hidden flex justify-center items-center gap-4 mt-6">
+            <button
+              onClick={() => scroll('left')}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                canScrollLeft
+                  ? 'opacity-100'
+                  : 'opacity-40 pointer-events-none'
+              }`}
+              style={{
+                backgroundColor: '#800020',
+                border: '1px solid rgba(201, 162, 77, 0.4)'
+              }}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5 text-[#C9A24D]" />
+            </button>
+
+            <button
+              onClick={() => scroll('right')}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                canScrollRight
+                  ? 'opacity-100'
+                  : 'opacity-40 pointer-events-none'
+              }`}
+              style={{
+                backgroundColor: '#800020',
+                border: '1px solid rgba(201, 162, 77, 0.4)'
+              }}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5 text-[#C9A24D]" />
+            </button>
+          </div>
         </div>
 
         {/* Bottom CTA */}
