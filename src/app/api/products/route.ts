@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { Where } from 'payload'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const payload = await getPayload({ config: config.default })
 
     // Build the query
-    const where: Record<string, unknown> = {}
+    const where: Where = {}
 
     // Only filter by active status if not fetching all (for admin)
     if (all !== 'true' && !status) {
