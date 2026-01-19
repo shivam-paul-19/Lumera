@@ -20,7 +20,8 @@ interface ProductForm {
   newArrival: boolean
   quantity: string
   waxType: string
-  burnTime: string
+  burnTimeMin: string
+  burnTimeMax: string
   weight: string
   topNotes: string
   heartNotes: string
