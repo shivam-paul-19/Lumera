@@ -110,7 +110,7 @@ export async function initiateRefund(
 ) {
   const refundOptions: {
     amount?: number
-    speed?: string
+    speed?: 'normal' | 'optimum'
     notes?: Record<string, string>
   } = {
     speed: 'normal',
