@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import nodemailer from 'nodemailer';
 
 export const sendMail = async ({
@@ -16,7 +17,7 @@ export const sendMail = async ({
       secure: true,          // CHANGE to false
       auth: {
         user: 'Info@lumeracandles.in',
-        pass: 'Lumera123#',
+        pass: process.env.SMTP_PASS,
       },
     });
 
