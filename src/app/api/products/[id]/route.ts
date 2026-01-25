@@ -56,7 +56,7 @@ export async function PATCH(
         name: body.name,
         slug: body.slug,
         tagline: body.tagline,
-        description: body.description ? [{ children: [{ text: body.description }] }] : undefined,
+        description: body.description || undefined,
         pricing: body.pricing,
         collection: body.collection || null,
         status: body.status || 'draft',

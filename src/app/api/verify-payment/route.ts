@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPaymentSignature, fetchPaymentDetails } from '@/lib/razorpay'
+import { sendMail } from '@/lib/sendMail'
 
 // State code mapping for Payload CMS
 const stateCodeMap: Record<string, string> = {
@@ -157,6 +158,34 @@ export async function POST(request: NextRequest) {
         },
       })
       console.log('Order saved to database:', orderNumber)
+
+      // Send order confirmation email
+      try {
+        const itemsList = (orderData?.items || []).map((item: any) => 
+          `- ${item.name} (x${item.quantity}): ₹${item.price * item.quantity}`
+        ).join('\n')
+
+        const emailMessage = `Dear ${orderData?.firstName || 'Customer'},\n\n` +
+          `Thank you for your order with Lumera Candles! Your order has been successfully placed.\n\n` +
+          `Order Number: ${orderNumber}\n` +
+          `Order Total: ₹${orderData?.total || 0}\n\n` +
+          `Items Ordered:\n${itemsList}\n\n` +
+          `Shipping Address:\n` +
+          `${orderData?.shippingAddress?.addressLine1}\n` +
+          `${orderData?.shippingAddress?.addressLine2 ? orderData.shippingAddress.addressLine2 + '\n' : ''}` +
+          `${orderData?.shippingAddress?.city}, ${stateValue} - ${orderData?.shippingAddress?.pincode}\n\n` +
+          `We will notify you once your order is shipped.\n\n` +
+          `Best regards,\nThe Lumera Team`
+
+        await sendMail({
+          to: orderData?.email || '',
+          subject: `Order Confirmed - ${orderNumber}`,
+          message: emailMessage,
+        })
+        console.log('Order confirmation email sent to:', orderData?.email)
+      } catch (mailError) {
+        console.error('Failed to send order confirmation email (non-fatal):', mailError)
+      }
     } catch (dbError: any) {
       // Log the error but don't fail the payment verification
       console.error('Database save error (non-fatal):', dbError.message)

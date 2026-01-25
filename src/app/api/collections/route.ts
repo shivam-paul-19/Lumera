@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
       data: {
         name: body.name,
         slug: body.slug,
-        description: body.description || undefined,
+        collectionType: 'signature',
+        status: 'draft',
       },
       overrideAccess: true, // Bypass access control for dashboard
     })

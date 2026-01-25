@@ -1,6 +1,9 @@
 import NextAuth from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
+import { sendMail } from '@/lib/sendMail'
 
 // Development fallback secret - in production, always use NEXTAUTH_SECRET env variable
 const authSecret = process.env.NEXTAUTH_SECRET || 'lumera-dev-secret-key-change-in-production'
@@ -21,20 +24,73 @@ const handler = NextAuth({
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        name: { label: 'Name', type: 'text' },
+        isSignup: { label: 'isSignup', type: 'text' },
       },
       async authorize(credentials) {
-        // In production, verify against your database
-        // For now, accept any email/password with minimum validation
-        if (credentials?.email && credentials?.password && credentials.password.length >= 6) {
-          // Generate a consistent ID based on email
-          const id = Buffer.from(credentials.email.toLowerCase()).toString('base64')
-          return {
-            id,
-            name: credentials.email.split('@')[0],
-            email: credentials.email,
-          }
+        if (!credentials?.email || !credentials?.password) {
+          return null
         }
-        return null
+
+        try {
+          const payload = await getPayload({ config })
+          const { password, name, isSignup } = credentials
+          const email = credentials.email.trim().toLowerCase()
+
+          if (isSignup === 'true') {
+            // Create new user
+            const user = await payload.create({
+              collection: 'users',
+              data: {
+                email,
+                password,
+                name: name || email.split('@')[0],
+                role: 'customer',
+              },
+            })
+
+            // Send welcome email after successful signup
+            try {
+              await sendMail({
+                to: user.email,
+                subject: 'Welcome to Lumera Candles!',
+                message: `Hi ${user.name || 'there'},\n\nWelcome to Lumera Candles! We are excited to have you on board.\n\nExplore our collection of premium candles at proper pricing.\n\nBest regards,\nThe Lumera Team`,
+              })
+            } catch (mailError) {
+              console.error('Failed to send welcome email:', mailError)
+              // Don't fail the signup if the email fails
+            }
+
+            return {
+              id: user.id.toString(),
+              name: (user.name as string) || '',
+              email: user.email,
+            }
+          } else {
+            // Login existing user
+            const result = await payload.login({
+              collection: 'users',
+              data: {
+                email,
+                password,
+              },
+            })
+
+            if (result.user) {
+              return {
+                id: result.user.id.toString(),
+                name: (result.user.name as string) || '',
+                email: result.user.email,
+              }
+            }
+          }
+          return null
+        } catch (error: any) {
+          console.error('Auth error full object:', JSON.stringify(error, null, 2))
+          console.error('Auth error message:', error.message)
+          if (error.data) console.error('Auth error data:', error.data)
+          return null
+        }
       },
     }),
   ],

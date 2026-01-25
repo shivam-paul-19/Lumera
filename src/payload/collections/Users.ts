@@ -12,6 +12,9 @@ export const Users: CollectionConfig = {
     group: 'Admin',
     description: 'Admin users and customer accounts',
   },
+  hooks: {
+    afterChange: [],
+  },
   auth: true,
   access: {
     read: ({ req: { user } }) => {

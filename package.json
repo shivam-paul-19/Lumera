@@ -14,7 +14,7 @@
     "generate:graphQLSchema": "payload generate:graphQLSchema"
   },
   "dependencies": {
-    "@auth/core": "^0.34.3",
+    "@auth/core": "^0.41.1",
     "@getbrevo/brevo": "^3.0.1",
     "@payloadcms/db-mongodb": "^3.14.0",
     "@payloadcms/next": "^3.14.0",
@@ -22,9 +22,10 @@
     "axios": "^1.7.0",
     "cors": "^2.8.5",
     "framer-motion": "^11.15.0",
+    "graphql": "^16.12.0",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",
-    "next-auth": "^4.24.13",
+    "next-auth": "^4.24.7",
     "nodemailer": "^7.0.12",
     "payload": "^3.14.0",
     "razorpay": "^2.9.6",
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@types/nodemailer": "^7.0.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",

@@ -30,7 +30,7 @@ const heroSlides: HeroSlide[] = [
       text: 'Explore Collection',
       href: '/collections',
     },
-    image: 'https://images.unsplash.com/photo-1602607434266-252e574a9468?w=1920&h=1080&fit=crop&q=80',
+    image: '/images/linger-candle.jpg',
     imageAlt: 'Lumera luxury candle with warm ambient lighting',
   },
   {

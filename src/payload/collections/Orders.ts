@@ -1,4 +1,31 @@
-import { CollectionConfig } from 'payload'
+import { CollectionAfterChangeHook, CollectionConfig } from 'payload'
+import { sendMail } from '../../lib/sendMail'
+
+const sendOrderConfirmation: CollectionAfterChangeHook = async ({
+  doc,
+  operation,
+}) => {
+  if (operation === 'create') {
+    try {
+      const itemsList = doc.items
+        .map(
+          (item: any) =>
+            `- ${item.productName} (x${item.quantity}): ₹${item.totalPrice}`,
+        )
+        .join('\n')
+
+      await sendMail({
+        to: doc.customer.email,
+        subject: `Order Confirmation - ${doc.orderNumber}`,
+        message: `Dear ${doc.customer.firstName},\n\nThank you for your order!\n\nOrder Number: ${doc.orderNumber}\n\nItems:\n${itemsList}\n\nTotal Amount: ₹${doc.pricing.total}\n\nWe will notify you when your order is shipped.\n\nBest regards,\nLumera Candles`,
+      })
+    } catch (error) {
+      console.error('Error sending order confirmation:', error)
+    }
+  }
+  return doc
+}
+
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -621,6 +648,7 @@ export const Orders: CollectionConfig = {
           console.log(`Order ${doc.orderNumber} status changed: ${previousDoc.status} → ${doc.status}`)
         }
       },
+      sendOrderConfirmation,
     ],
   },
 }

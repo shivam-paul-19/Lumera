@@ -187,7 +187,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signIn('credentials', {
         email,
         password,
+        name,
         redirect: false,
+        isSignup: 'true',
       })
 
       if (result?.ok) {
