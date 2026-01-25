@@ -4,15 +4,16 @@ import config from '@/payload.config'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const payload = await getPayload({ config })
     
     const coupon = await payload.update({
       collection: 'coupons',
-      id: params.id,
+      id,
       data: body,
       overrideAccess: true,
     })
@@ -29,13 +30,14 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const payload = await getPayload({ config })
     await payload.delete({
       collection: 'coupons',
-      id: params.id,
+      id,
       overrideAccess: true,
     })
     return NextResponse.json({ success: true })

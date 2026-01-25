@@ -25,7 +25,7 @@ export default function CouponsPage() {
   
   const [form, setForm] = useState({
     code: '',
-    type: 'percentage' as const,
+    type: 'percentage' as 'percentage' | 'fixed',
     value: '',
     minOrderAmount: '0',
     active: true,
