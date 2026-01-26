@@ -72,11 +72,7 @@ export default buildConfig({
         throw new Error('MONGODB_URI environment variable is missing! Please set it in your deployment settings.')
       }
       return 'mongodb://127.0.0.1:27017/lumera'
-    })(),
-    connectOptions: {
-      // @ts-ignore
-      suppressReservedKeysWarning: true,
-    },
+    })()
   }),
   cors: [
     process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
