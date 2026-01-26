@@ -8,7 +8,7 @@ export const Products: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'pricing.price', 'inventory.quantity', 'status', 'collection'],
+    defaultColumns: ['name', 'pricing.price', 'inventory.quantity', 'status', 'productCollection'],
     listSearchableFields: ['name', 'slug', 'tagline'],
     group: 'Shop',
     description: 'Manage Lumera candle products',
@@ -417,7 +417,7 @@ export const Products: CollectionConfig = {
 
     // Categorization
     {
-      name: 'collection',
+      name: 'productCollection',
       type: 'relationship',
       relationTo: 'collections',
       required: true,

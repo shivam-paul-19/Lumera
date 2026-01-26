@@ -16,7 +16,7 @@ export interface ProductCardProps {
   compareAtPrice?: number
   image: string
   hoverImage?: string
-  collection?: string
+  productCollection?: string
   fragrance?: {
     topNotes?: string[]
     heartNotes?: string[]
@@ -48,7 +48,7 @@ export default function ProductCard({
   compareAtPrice,
   image,
   hoverImage,
-  collection,
+  productCollection,
   fragrance,
   specifications,
   isNew = false,
@@ -86,7 +86,7 @@ export default function ProductCard({
         price,
         compareAtPrice,
         image,
-        collection,
+        collection: productCollection,
       })
     }
   }
@@ -101,7 +101,7 @@ export default function ProductCard({
       price,
       compareAtPrice,
       image,
-      collection,
+      collection: productCollection,
       tagline,
     })
   }
@@ -237,9 +237,9 @@ export default function ProductCard({
       {/* Product Info */}
       <div className="space-y-2">
         {/* Collection Tag */}
-        {collection && (
+        {productCollection && (
           <p className="text-xs font-sans tracking-wider uppercase text-lumera-charcoal/50">
-            {collection}
+            {productCollection}
           </p>
         )}
 

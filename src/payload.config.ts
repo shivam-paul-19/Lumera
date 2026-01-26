@@ -67,7 +67,16 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: mongooseAdapter({
-    url: process.env.MONGODB_URI || 'mongodb://localhost:27017/lumera',
+    url: process.env.MONGODB_URI || (() => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('MONGODB_URI environment variable is missing! Please set it in your deployment settings.')
+      }
+      return 'mongodb://127.0.0.1:27017/lumera'
+    })(),
+    connectOptions: {
+      // @ts-ignore
+      suppressReservedKeysWarning: true,
+    },
   }),
   cors: [
     process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',

@@ -21,7 +21,7 @@ interface Product {
     }
     isPrimary?: boolean
   }>
-  collection?: {
+  productCollection?: {
     name: string
   }
   bestSeller?: boolean
@@ -158,9 +158,9 @@ export default function FeaturedProducts() {
 
                     {/* Product Info */}
                     <div className="text-center">
-                      {product.collection && (
+                      {product.productCollection && (
                         <p className="text-[10px] tracking-widest uppercase text-[#C9A24D] mb-1">
-                          {product.collection.name}
+                          {product.productCollection.name}
                         </p>
                       )}
                       <h3 className="font-serif text-lg text-[#800020] mb-1 group-hover:text-[#C9A24D] transition-colors">
