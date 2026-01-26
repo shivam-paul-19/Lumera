@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import path from 'path'
+import os from 'os'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -18,7 +19,7 @@ export const Media: CollectionConfig = {
     delete: ({ req: { user } }) => !!user,
   },
   upload: {
-    staticDir: path.resolve(process.cwd(), 'media'),
+    staticDir: path.resolve(os.tmpdir(), 'media'),
     imageSizes: [
       {
         name: 'thumbnail',
