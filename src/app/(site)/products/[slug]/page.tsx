@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -18,26 +18,37 @@ import {
   Share2,
   Check
 } from 'lucide-react'
-import { placeholderImages } from '@/lib/placeholders'
 import { useCart, useWishlist } from '@/context'
 
-// Sample product data - in production this would come from Payload CMS
-const productsData: Record<string, {
+interface Product {
   id: string
   name: string
-  tagline: string
+  slug: string
+  tagline?: string
   description: string
-  price: number
-  compareAtPrice?: number
-  images: string[]
-  collection: string
-  collectionSlug: string
-  fragrance: {
-    topNotes: string[]
-    heartNotes: string[]
-    baseNotes: string[]
-    family: string
-    intensity: string
+  pricing: {
+    price: number
+    compareAtPrice?: number
+  }
+  images: Array<{
+    image: {
+      url: string
+      alt?: string
+    }
+    isPrimary?: boolean
+  }>
+  productCollection?: {
+    name: string
+    slug: string
+  }
+  fragrance?: {
+    topNotes?: Array<{ note: string }>
+    heartNotes?: Array<{ note: string }>
+    baseNotes?: Array<{ note: string }>
+    family?: string
+    intensity?: string
+    fragranceFamily?: string
+    scentIntensity?: string
   }
   specifications: {
     burnTime: { minimum: number; maximum: number }
@@ -45,439 +56,27 @@ const productsData: Record<string, {
     dimensions: { height: number; diameter: number }
     waxType: string
     wickType: string
-    container: string
+    containerMaterial?: string 
+    isHandmade?: boolean
+    isVegan?: boolean
+    isCrueltyFree?: boolean
   }
-  features: string[]
-  careInstructions: string[]
-  isNew?: boolean
-  isBestSeller?: boolean
-  inStock: boolean
-  stockQuantity: number
+  careInstructions?: Array<{ instruction: string }>
+  isNew?: boolean // newArrival
+  newArrival?: boolean
+  isBestSeller?: boolean // bestSeller
+  bestSeller?: boolean
+  inventory?: {
+     quantity: number
+  }
   promoTag?: string
-}> = {
-  'vanilla-dreams': {
-    id: '1',
-    name: 'Vanilla Dreams',
-    tagline: 'A warm embrace of comfort',
-    description: 'Indulge in the rich, creamy sweetness of our Vanilla Dreams candle. This luxurious blend combines the warmth of pure vanilla bean with hints of caramel and sandalwood, creating a comforting atmosphere that wraps around you like a cozy blanket. Perfect for quiet evenings and moments of self-care.',
-    price: 1299,
-    compareAtPrice: 1599,
-    images: [
-      placeholderImages.products.vanillaDreams,
-      placeholderImages.products.vanillaDreamsAlt,
-      placeholderImages.products.roseGarden,
-    ],
-    collection: 'Signature',
-    collectionSlug: 'signature',
-    fragrance: {
-      topNotes: ['Vanilla Bean', 'Caramel', 'Bergamot'],
-      heartNotes: ['Sandalwood', 'Coconut Milk', 'Jasmine'],
-      baseNotes: ['Musk', 'Amber', 'Tonka Bean'],
-      family: 'Gourmand',
-      intensity: 'Moderate',
-    },
-    specifications: {
-      burnTime: { minimum: 45, maximum: 55 },
-      weight: { value: 200, unit: 'g' },
-      dimensions: { height: 10, diameter: 8 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Phthalate-free fragrance',
-      'Vegan & Cruelty-free',
-      'Reusable glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    isBestSeller: true,
-    inStock: true,
-    stockQuantity: 25,
-  },
-  'midnight-oud': {
-    id: '3',
-    name: 'Midnight Oud',
-    tagline: 'Mystery in every flame',
-    description: 'Experience the exotic allure of Midnight Oud. This sophisticated fragrance opens with the brightness of bergamot and saffron, unfolding into a heart of precious oud and damask rose. The base of sandalwood and amber creates a lasting impression of mystery and luxury.',
-    price: 2499,
-    images: [
-      placeholderImages.products.midnightOud,
-      placeholderImages.products.midnightOudAlt,
-      placeholderImages.products.warmAmber,
-    ],
-    collection: 'Signature',
-    collectionSlug: 'signature',
-    fragrance: {
-      topNotes: ['Bergamot', 'Saffron', 'Pink Pepper'],
-      heartNotes: ['Oud', 'Damask Rose', 'Geranium'],
-      baseNotes: ['Sandalwood', 'Amber', 'Leather'],
-      family: 'Oriental',
-      intensity: 'Strong',
-    },
-    specifications: {
-      burnTime: { minimum: 55, maximum: 65 },
-      weight: { value: 300, unit: 'g' },
-      dimensions: { height: 12, diameter: 9 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Premium fragrance oils',
-      'Vegan & Cruelty-free',
-      'Luxury glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    inStock: true,
-    stockQuantity: 15,
-  },
-  'rose-garden': {
-    id: '2',
-    name: 'Rose Garden',
-    tagline: 'Petals of pure elegance',
-    description: 'Step into a blooming rose garden with this exquisite floral candle. Bulgarian rose and peony create a romantic heart, while jasmine and lily add depth. The subtle base of white musk ensures this fragrance remains elegant and never overwhelming.',
-    price: 1499,
-    images: [
-      placeholderImages.products.roseGarden,
-      placeholderImages.products.roseGardenAlt,
-      placeholderImages.products.lavenderFields,
-    ],
-    collection: 'Moments',
-    collectionSlug: 'moments',
-    fragrance: {
-      topNotes: ['Bulgarian Rose', 'Peony', 'Green Leaves'],
-      heartNotes: ['Jasmine', 'Lily of the Valley', 'Magnolia'],
-      baseNotes: ['White Musk', 'Cedar', 'Soft Woods'],
-      family: 'Floral',
-      intensity: 'Moderate',
-    },
-    specifications: {
-      burnTime: { minimum: 50, maximum: 60 },
-      weight: { value: 250, unit: 'g' },
-      dimensions: { height: 11, diameter: 8.5 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Phthalate-free fragrance',
-      'Vegan & Cruelty-free',
-      'Elegant glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    isNew: true,
-    inStock: true,
-    stockQuantity: 20,
-  },
-  'citrus-burst': {
-    id: '4',
-    name: 'Citrus Burst',
-    tagline: 'Morning sunshine captured',
-    description: 'Wake up to the refreshing energy of Citrus Burst. This vibrant candle combines zesty lemon, sweet orange, and tangy grapefruit to create an invigorating atmosphere. Perfect for morning rituals or whenever you need a boost of positivity.',
-    price: 999,
-    images: [
-      placeholderImages.products.citrusBurst,
-      placeholderImages.products.vanillaDreams,
-      placeholderImages.products.oceanBreeze,
-    ],
-    collection: 'Ritual',
-    collectionSlug: 'ritual',
-    fragrance: {
-      topNotes: ['Lemon', 'Orange', 'Grapefruit'],
-      heartNotes: ['Lemongrass', 'Green Tea', 'Mint'],
-      baseNotes: ['White Cedar', 'Light Musk', 'Vetiver'],
-      family: 'Citrus',
-      intensity: 'Light',
-    },
-    specifications: {
-      burnTime: { minimum: 35, maximum: 45 },
-      weight: { value: 150, unit: 'g' },
-      dimensions: { height: 8, diameter: 7 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Phthalate-free fragrance',
-      'Vegan & Cruelty-free',
-      'Reusable glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    inStock: true,
-    stockQuantity: 30,
-  },
-  'lavender-fields': {
-    id: '5',
-    name: 'Lavender Fields',
-    tagline: 'Peace in purple blooms',
-    description: 'Transport yourself to the lavender fields of Provence with this calming candle. French lavender blends with eucalyptus and chamomile to create a soothing sanctuary. Ideal for unwinding after a long day or creating a peaceful bedtime ritual.',
-    price: 1199,
-    images: [
-      placeholderImages.products.lavenderFields,
-      placeholderImages.products.roseGarden,
-      placeholderImages.products.oceanBreeze,
-    ],
-    collection: 'Ritual',
-    collectionSlug: 'ritual',
-    fragrance: {
-      topNotes: ['French Lavender', 'Eucalyptus', 'Bergamot'],
-      heartNotes: ['Chamomile', 'Geranium', 'Clary Sage'],
-      baseNotes: ['Sandalwood', 'Vanilla', 'Soft Musk'],
-      family: 'Floral Herbal',
-      intensity: 'Moderate',
-    },
-    specifications: {
-      burnTime: { minimum: 40, maximum: 50 },
-      weight: { value: 180, unit: 'g' },
-      dimensions: { height: 9, diameter: 7.5 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Phthalate-free fragrance',
-      'Vegan & Cruelty-free',
-      'Reusable glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    inStock: true,
-    stockQuantity: 25,
-  },
-  'ocean-breeze': {
-    id: '6',
-    name: 'Ocean Breeze',
-    tagline: 'Waves of tranquility',
-    description: 'Feel the calming embrace of the ocean with this refreshing candle. Sea salt mingles with bergamot and aquatic notes to bring the serenity of coastal mornings into your home. Close your eyes and let the waves wash your worries away.',
-    price: 1099,
-    images: [
-      placeholderImages.products.oceanBreeze,
-      placeholderImages.products.citrusBurst,
-      placeholderImages.products.lavenderFields,
-    ],
-    collection: 'Ritual',
-    collectionSlug: 'ritual',
-    fragrance: {
-      topNotes: ['Sea Salt', 'Bergamot', 'Ozone'],
-      heartNotes: ['Water Lily', 'Jasmine', 'Sea Moss'],
-      baseNotes: ['Driftwood', 'White Amber', 'Musk'],
-      family: 'Aquatic',
-      intensity: 'Light',
-    },
-    specifications: {
-      burnTime: { minimum: 40, maximum: 50 },
-      weight: { value: 180, unit: 'g' },
-      dimensions: { height: 9, diameter: 7.5 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Phthalate-free fragrance',
-      'Vegan & Cruelty-free',
-      'Reusable glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    inStock: true,
-    stockQuantity: 22,
-  },
-  'warm-amber': {
-    id: '7',
-    name: 'Warm Amber',
-    tagline: 'Golden warmth within',
-    description: 'Bask in the warm glow of Warm Amber. This cozy candle opens with orange zest and cinnamon, warming into a heart of rich amber and honey. The sandalwood and vanilla base creates a comforting atmosphere perfect for cold evenings.',
-    price: 1399,
-    images: [
-      placeholderImages.products.warmAmber,
-      placeholderImages.products.vanillaDreams,
-      placeholderImages.products.midnightOud,
-    ],
-    collection: 'Moments',
-    collectionSlug: 'moments',
-    fragrance: {
-      topNotes: ['Orange Zest', 'Cinnamon', 'Cardamom'],
-      heartNotes: ['Amber', 'Honey', 'Ginger'],
-      baseNotes: ['Sandalwood', 'Vanilla', 'Benzoin'],
-      family: 'Oriental',
-      intensity: 'Moderate',
-    },
-    specifications: {
-      burnTime: { minimum: 45, maximum: 55 },
-      weight: { value: 200, unit: 'g' },
-      dimensions: { height: 10, diameter: 8 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Premium fragrance oils',
-      'Vegan & Cruelty-free',
-      'Elegant glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    isBestSeller: true,
-    inStock: true,
-    stockQuantity: 18,
-  },
-  'forest-pine': {
-    id: '8',
-    name: 'Forest Pine',
-    tagline: "Nature's embrace",
-    description: 'Escape to a serene forest with Forest Pine. Pine needle and eucalyptus create a crisp, clean opening, while cedar and fir balsam add depth. The earthy base of moss and oakwood makes every breath feel like a walk among the trees.',
-    price: 1299,
-    images: [
-      placeholderImages.products.forestPine,
-      placeholderImages.products.warmAmber,
-      placeholderImages.products.oceanBreeze,
-    ],
-    collection: 'Moments',
-    collectionSlug: 'moments',
-    fragrance: {
-      topNotes: ['Pine Needle', 'Eucalyptus', 'Fir Balsam'],
-      heartNotes: ['Cedar', 'Juniper Berry', 'Rosemary'],
-      baseNotes: ['Forest Moss', 'Oakwood', 'Vetiver'],
-      family: 'Woody',
-      intensity: 'Strong',
-    },
-    specifications: {
-      burnTime: { minimum: 45, maximum: 55 },
-      weight: { value: 200, unit: 'g' },
-      dimensions: { height: 10, diameter: 8 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Premium fragrance oils',
-      'Vegan & Cruelty-free',
-      'Rustic glass container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    inStock: true,
-    stockQuantity: 20,
-  },
-  'royal-jasmine': {
-    id: '9',
-    name: 'Royal Jasmine',
-    tagline: 'Elegance personified',
-    description: 'Experience the intoxicating beauty of Royal Jasmine. Indian jasmine and neroli create a luxurious floral bouquet, while ylang-ylang adds exotic depth. The base of white sandalwood and golden amber makes this a truly regal experience.',
-    price: 2999,
-    images: [
-      placeholderImages.products.royalJasmine,
-      placeholderImages.products.roseGarden,
-      placeholderImages.products.midnightOud,
-    ],
-    collection: 'Signature',
-    collectionSlug: 'signature',
-    fragrance: {
-      topNotes: ['Indian Jasmine', 'Neroli', 'Mandarin'],
-      heartNotes: ['Ylang-Ylang', 'Tuberose', 'Orange Blossom'],
-      baseNotes: ['White Sandalwood', 'Golden Amber', 'Musk'],
-      family: 'Floral Oriental',
-      intensity: 'Strong',
-    },
-    specifications: {
-      burnTime: { minimum: 60, maximum: 70 },
-      weight: { value: 350, unit: 'g' },
-      dimensions: { height: 12, diameter: 10 },
-      waxType: 'Soy & Coconut Blend',
-      wickType: 'Cotton Wick',
-      container: 'Luxury Glass Jar',
-    },
-    features: [
-      '100% Natural Soy-Coconut Wax',
-      'Hand-poured in small batches',
-      'Lead-free cotton wick',
-      'Rare fragrance ingredients',
-      'Vegan & Cruelty-free',
-      'Premium luxury container',
-    ],
-    careInstructions: [
-      'Trim wick to 1/4 inch before each lighting',
-      'Allow wax to melt to edges on first burn',
-      'Burn for no more than 4 hours at a time',
-      'Keep away from drafts and flammable materials',
-      'Never leave a burning candle unattended',
-    ],
-    isNew: true,
-    inStock: true,
-    stockQuantity: 12,
-  },
 }
 
 export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState<'description' | 'details' | 'care'>('description')
@@ -486,14 +85,56 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const { addToCart, setIsCartOpen } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
 
-  const product = productsData[slug]
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/products?slug=${slug}`)
+        if (!res.ok) {
+           setError(true)
+           setLoading(false)
+           return
+        }
+        const data = await res.json()
+        if (data.docs && data.docs.length > 0) {
+          setProduct(data.docs[0])
+        } else {
+          setError(true)
+        }
+      } catch (err) {
+        console.error("Failed to fetch product", err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [slug])
 
-  if (!product) {
-    notFound()
+  if (loading) {
+     return (
+        <>
+            <Header />
+            <main className="pt-20 min-h-screen flex items-center justify-center bg-cream-100">
+                <div className="animate-pulse flex flex-col items-center">
+                    <div className="w-12 h-12 bg-burgundy-700/20 rounded-full mb-4"></div>
+                    <p className="font-serif text-burgundy-700">Loading candle...</p>
+                </div>
+            </main>
+            <Footer />
+        </>
+     )
   }
 
-  const discount = product.compareAtPrice
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+  if (error || !product) {
+    return notFound()
+  }
+
+  // Derived Values
+  const price = product.pricing.price || 0
+  const compareAtPrice = product.pricing.compareAtPrice
+  const discount = compareAtPrice
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0
 
   const formatPrice = (amount: number) => {
@@ -503,6 +144,39 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       minimumFractionDigits: 0,
     }).format(amount)
   }
+  
+  const collectionName = product.productCollection?.name || 'Collection'
+  const collectionSlug = product.productCollection?.slug || 'all'
+  
+  // Normalize fragrance data
+  const fragranceFamily = product.fragrance?.fragranceFamily || product.fragrance?.family || 'Signature' 
+  const fragranceIntensity = product.fragrance?.scentIntensity || product.fragrance?.intensity || 'Moderate'
+  const topNotes = product.fragrance?.topNotes?.map(n => n.note).join(', ') || ''
+  const heartNotes = product.fragrance?.heartNotes?.map(n => n.note).join(', ') || ''
+  const baseNotes = product.fragrance?.baseNotes?.map(n => n.note).join(', ') || ''
+
+  // Normalize Images
+  // Ensure we have at least one image
+  const displayImages = product.images && product.images.length > 0 
+    ? product.images.map(img => img.image.url) 
+    : ['/placeholder-candle.jpg']
+
+  // Ensure stock
+  const stockQty = product.inventory?.quantity || 0
+  const inStock = stockQty > 0
+  
+  // Normalize features from specs
+  const features = []
+  if (product.specifications.waxType) features.push(product.specifications.waxType) // e.g. "Soy & Coconut Blend"
+  if (product.specifications.isHandmade) features.push('Hand-poured in small batches')
+  if (product.specifications.wickType) features.push(product.specifications.wickType)
+  features.push('Phthalate-free fragrance') // Assumption based on brand
+  if (product.specifications.isVegan) features.push('Vegan & Cruelty-free')
+  if (product.specifications.containerMaterial) features.push(`Reusable ${product.specifications.containerMaterial} container`)
+
+
+  const isNew = product.newArrival || product.isNew
+  const isBestSeller = product.bestSeller || product.isBestSeller
 
   return (
     <>
@@ -520,8 +194,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 Collections
               </Link>
               <span className="text-burgundy-700/30">/</span>
-              <Link href={`/collections?collection=${product.collectionSlug}`} className="text-burgundy-700/50 hover:text-burgundy-700">
-                {product.collection}
+              <Link href={`/collections?collection=${collectionSlug}`} className="text-burgundy-700/50 hover:text-burgundy-700">
+                {collectionName}
               </Link>
               <span className="text-burgundy-700/30">/</span>
               <span className="text-burgundy-700">{product.name}</span>
@@ -542,7 +216,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 {/* Main Image */}
                 <div className="relative aspect-square overflow-hidden bg-cream-200 mb-4">
                   <Image
-                    src={product.images[selectedImage]}
+                    src={displayImages[selectedImage] || '/placeholder-candle.jpg'}
                     alt={product.name}
                     fill
                     className="object-cover"
@@ -555,12 +229,12 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                         {product.promoTag}
                       </span>
                     )}
-                    {product.isNew && (
+                    {isNew && (
                       <span className="px-3 py-1 bg-burgundy-700 text-cream-100 text-xs font-sans tracking-wider uppercase">
                         New
                       </span>
                     )}
-                    {product.isBestSeller && (
+                    {isBestSeller && (
                       <span className="px-3 py-1 bg-champagne-500 text-burgundy-700 text-xs font-sans tracking-wider uppercase">
                         Best Seller
                       </span>
@@ -574,26 +248,28 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 </div>
 
                 {/* Thumbnails - Larger on mobile for touch targets */}
-                <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
-                  {product.images.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 overflow-hidden border-2 transition-all ${
-                        selectedImage === index
-                          ? 'border-burgundy-700'
-                          : 'border-transparent hover:border-burgundy-700/30'
-                      }`}
-                    >
-                      <Image
-                        src={image}
-                        alt={`${product.name} view ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                {displayImages.length > 1 && (
+                    <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
+                    {displayImages.map((image, index) => (
+                        <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={`relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 overflow-hidden border-2 transition-all ${
+                            selectedImage === index
+                            ? 'border-burgundy-700'
+                            : 'border-transparent hover:border-burgundy-700/30'
+                        }`}
+                        >
+                        <Image
+                            src={image}
+                            alt={`${product.name} view ${index + 1}`}
+                            fill
+                            className="object-cover"
+                        />
+                        </button>
+                    ))}
+                    </div>
+                )}
               </motion.div>
 
               {/* Product Info */}
@@ -603,65 +279,77 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 transition={{ duration: 0.8 }}
               >
                 <Link
-                  href={`/collections?collection=${product.collectionSlug}`}
+                  href={`/collections?collection=${collectionSlug}`}
                   className="text-sm font-sans tracking-wider uppercase text-burgundy-700/50 hover:text-burgundy-700 transition-colors"
                 >
-                  {product.collection} Collection
+                  {collectionName} Collection
                 </Link>
 
                 <h1 className="font-serif text-3xl md:text-4xl text-burgundy-700 mt-2 mb-2">
                   {product.name}
                 </h1>
-
-                <p className="font-serif text-lg text-champagne-600 italic mb-4">
-                  {product.tagline}
-                </p>
+                
+                {product.tagline && (
+                    <p className="font-serif text-lg text-champagne-600 italic mb-4">
+                    {product.tagline}
+                    </p>
+                )}
 
                 {/* Price */}
                 <div className="flex items-center gap-4 mb-6">
                   <span className="font-serif text-3xl text-burgundy-700">
-                    {formatPrice(product.price)}
+                    {formatPrice(price)}
                   </span>
-                  {product.compareAtPrice && (
+                  {compareAtPrice && compareAtPrice > price && (
                     <span className="font-sans text-lg text-burgundy-700/40 line-through">
-                      {formatPrice(product.compareAtPrice)}
+                      {formatPrice(compareAtPrice)}
                     </span>
                   )}
                 </div>
 
                 {/* Fragrance Family */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-6 text-sm font-sans">
-                  <div className="flex items-center gap-2">
-                    <span className="text-burgundy-700/60">Fragrance Family:</span>
-                    <span className="text-burgundy-700">{product.fragrance.family}</span>
-                  </div>
-                  <span className="hidden sm:inline text-burgundy-700/30">|</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-burgundy-700/60">Intensity:</span>
-                    <span className="text-burgundy-700">{product.fragrance.intensity}</span>
-                  </div>
-                </div>
+                {product.fragrance && (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-6 text-sm font-sans">
+                      <div className="flex items-center gap-2">
+                        <span className="text-burgundy-700/60">Fragrance Family:</span>
+                        <span className="text-burgundy-700 capitalize">{fragranceFamily}</span>
+                      </div>
+                      <span className="hidden sm:inline text-burgundy-700/30">|</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-burgundy-700/60">Intensity:</span>
+                        <span className="text-burgundy-700 capitalize">{fragranceIntensity}</span>
+                      </div>
+                    </div>
+                )}
 
                 {/* Fragrance Notes */}
-                <div className="mb-6 p-4 bg-cream-200/50 border border-burgundy-700/10">
-                  <p className="text-xs font-sans tracking-wider uppercase text-burgundy-700/50 mb-3">
-                    Fragrance Notes
-                  </p>
-                  <div className="space-y-2 text-sm font-sans">
-                    <p>
-                      <span className="text-burgundy-700/60">Top:</span>{' '}
-                      <span className="text-burgundy-700">{product.fragrance.topNotes.join(', ')}</span>
+                {product.fragrance && (
+                    <div className="mb-6 p-4 bg-cream-200/50 border border-burgundy-700/10">
+                    <p className="text-xs font-sans tracking-wider uppercase text-burgundy-700/50 mb-3">
+                        Fragrance Notes
                     </p>
-                    <p>
-                      <span className="text-burgundy-700/60">Heart:</span>{' '}
-                      <span className="text-burgundy-700">{product.fragrance.heartNotes.join(', ')}</span>
-                    </p>
-                    <p>
-                      <span className="text-burgundy-700/60">Base:</span>{' '}
-                      <span className="text-burgundy-700">{product.fragrance.baseNotes.join(', ')}</span>
-                    </p>
-                  </div>
-                </div>
+                    <div className="space-y-2 text-sm font-sans">
+                        {topNotes && (
+                            <p>
+                                <span className="text-burgundy-700/60">Top:</span>{' '}
+                                <span className="text-burgundy-700">{topNotes}</span>
+                            </p>
+                        )}
+                        {heartNotes && (
+                        <p>
+                            <span className="text-burgundy-700/60">Heart:</span>{' '}
+                            <span className="text-burgundy-700">{heartNotes}</span>
+                        </p>
+                        )}
+                        {baseNotes && (
+                        <p>
+                            <span className="text-burgundy-700/60">Base:</span>{' '}
+                            <span className="text-burgundy-700">{baseNotes}</span>
+                        </p>
+                        )}
+                    </div>
+                    </div>
+                )}
 
                 {/* Quantity & Add to Cart */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -678,7 +366,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                       {quantity}
                     </span>
                     <button
-                      onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
+                      onClick={() => setQuantity(Math.min(stockQty, quantity + 1))}
                       className="p-4 min-w-[48px] min-h-[48px] hover:bg-burgundy-700/5 transition-colors flex items-center justify-center"
                       aria-label="Increase quantity"
                     >
@@ -688,15 +376,15 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
                   {/* Add to Cart */}
                   <button
-                    disabled={!product.inStock || isAdded}
+                    disabled={!inStock || isAdded}
                     onClick={() => {
                       addToCart({
                         id: product.id,
                         name: product.name,
                         slug: slug,
-                        price: product.price,
-                        image: product.images[0],
-                        collection: product.collection,
+                        price: price,
+                        image: displayImages[0],
+                        collection: collectionName,
                       }, quantity)
                       setIsAdded(true)
                       setTimeout(() => {
@@ -714,7 +402,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     ) : (
                       <>
                         <ShoppingBag className="w-5 h-5" />
-                        {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                        {inStock ? 'Add to Cart' : 'Out of Stock'}
                       </>
                     )}
                   </button>
@@ -729,9 +417,9 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                           id: product.id,
                           name: product.name,
                           slug: slug,
-                          price: product.price,
-                          image: product.images[0],
-                          collection: product.collection,
+                          price: price,
+                          image: displayImages[0],
+                          collection: collectionName,
                         })
                       }
                     }}
@@ -747,9 +435,9 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 </div>
 
                 {/* Stock Status */}
-                {product.inStock && product.stockQuantity <= 10 && (
+                {inStock && stockQty <= 10 && (
                   <p className="text-sm font-sans text-burgundy-700/70 mb-6">
-                    Only {product.stockQuantity} left in stock
+                    Only {stockQty} left in stock
                   </p>
                 )}
 
@@ -769,7 +457,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                   </div>
                   <div className="flex items-center gap-3 text-sm font-sans text-burgundy-700/70">
                     <Clock className="w-5 h-5 text-burgundy-700" />
-                    <span>{product.specifications.burnTime.minimum}-{product.specifications.burnTime.maximum}h burn time</span>
+                    <span>{product.specifications?.burnTime?.minimum || 40}-{product.specifications?.burnTime?.maximum || 60}h burn time</span>
                   </div>
                 </div>
 
@@ -799,86 +487,109 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 ))}
               </div>
 
-              <div className="py-8">
-                {activeTab === 'description' && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="max-w-3xl"
-                  >
-                    <p className="text-burgundy-700/70 font-sans leading-relaxed mb-6">
-                      {product.description}
-                    </p>
-                    <h4 className="font-serif text-lg text-burgundy-700 mb-4">Features</h4>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {product.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm font-sans text-burgundy-700/70">
-                          <span className="w-1.5 h-1.5 rounded-full bg-champagne-500" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
+                <div className="py-8">
+                    {activeTab === 'description' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="font-sans text-burgundy-700/80 leading-relaxed max-w-3xl"
+                        >
+                            <p>{product.description}</p>
+                            
+                            {features.length > 0 && (
+                                <div className="mt-8">
+                                    <h3 className="font-serif text-xl text-burgundy-700 mb-4">Why you'll love it</h3>
+                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {features.map((feature, i) => (
+                                            <li key={i} className="flex items-center gap-2">
+                                                <Check className="w-4 h-4 text-green-700" />
+                                                <span>{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
 
-                {activeTab === 'details' && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="max-w-xl"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex justify-between py-3 border-b border-burgundy-700/10">
-                        <span className="text-burgundy-700/60 font-sans">Weight</span>
-                        <span className="text-burgundy-700 font-sans">{product.specifications.weight.value}{product.specifications.weight.unit}</span>
-                      </div>
-                      <div className="flex justify-between py-3 border-b border-burgundy-700/10">
-                        <span className="text-burgundy-700/60 font-sans">Dimensions</span>
-                        <span className="text-burgundy-700 font-sans">{product.specifications.dimensions.height}cm H x {product.specifications.dimensions.diameter}cm D</span>
-                      </div>
-                      <div className="flex justify-between py-3 border-b border-burgundy-700/10">
-                        <span className="text-burgundy-700/60 font-sans">Burn Time</span>
-                        <span className="text-burgundy-700 font-sans">{product.specifications.burnTime.minimum}-{product.specifications.burnTime.maximum} hours</span>
-                      </div>
-                      <div className="flex justify-between py-3 border-b border-burgundy-700/10">
-                        <span className="text-burgundy-700/60 font-sans">Wax Type</span>
-                        <span className="text-burgundy-700 font-sans">{product.specifications.waxType}</span>
-                      </div>
-                      <div className="flex justify-between py-3 border-b border-burgundy-700/10">
-                        <span className="text-burgundy-700/60 font-sans">Wick</span>
-                        <span className="text-burgundy-700 font-sans">{product.specifications.wickType}</span>
-                      </div>
-                      <div className="flex justify-between py-3 border-b border-burgundy-700/10">
-                        <span className="text-burgundy-700/60 font-sans">Container</span>
-                        <span className="text-burgundy-700 font-sans">{product.specifications.container}</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
+                    {activeTab === 'details' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="font-sans text-burgundy-700/80 max-w-3xl"
+                        >
+                           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                               {product.specifications?.weight && (
+                                   <div className="flex justify-between border-b border-burgundy-700/10 pb-2">
+                                       <dt className="text-burgundy-700/60">Weight</dt>
+                                       <dd className="font-medium text-burgundy-700">
+                                            {product.specifications.weight.value} {product.specifications.weight.unit}
+                                       </dd>
+                                   </div>
+                               )}
+                               {product.specifications?.dimensions && (
+                                   <div className="flex justify-between border-b border-burgundy-700/10 pb-2">
+                                       <dt className="text-burgundy-700/60">Dimensions</dt>
+                                       <dd className="font-medium text-burgundy-700">
+                                           {product.specifications.dimensions.height}cm H x {product.specifications.dimensions.diameter}cm D
+                                       </dd>
+                                   </div>
+                               )}
+                               {product.specifications?.waxType && (
+                                   <div className="flex justify-between border-b border-burgundy-700/10 pb-2">
+                                       <dt className="text-burgundy-700/60">Wax Type</dt>
+                                       <dd className="font-medium text-burgundy-700 capitalize">
+                                           {product.specifications.waxType.replace('-', ' ')}
+                                       </dd>
+                                   </div>
+                               )}
+                               {product.specifications?.wickType && (
+                                   <div className="flex justify-between border-b border-burgundy-700/10 pb-2">
+                                       <dt className="text-burgundy-700/60">Wick Type</dt>
+                                       <dd className="font-medium text-burgundy-700 capitalize">
+                                            {product.specifications.wickType.replace('-', ' ')}
+                                       </dd>
+                                   </div>
+                               )}
+                               {product.specifications?.containerMaterial && (
+                                   <div className="flex justify-between border-b border-burgundy-700/10 pb-2">
+                                       <dt className="text-burgundy-700/60">Container</dt>
+                                       <dd className="font-medium text-burgundy-700 capitalize">
+                                           {product.specifications.containerMaterial}
+                                       </dd>
+                                   </div>
+                               )}
+                           </dl>
+                        </motion.div>
+                    )}
 
-                {activeTab === 'care' && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="max-w-xl"
-                  >
-                    <ul className="space-y-4">
-                      {product.careInstructions.map((instruction, index) => (
-                        <li key={index} className="flex items-start gap-3 text-burgundy-700/70 font-sans">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-burgundy-700 text-cream-100 flex items-center justify-center text-xs">
-                            {index + 1}
-                          </span>
-                          {instruction}
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
-              </div>
+                    {activeTab === 'care' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="font-sans text-burgundy-700/80 max-w-3xl"
+                        >
+                            <h3 className="font-serif text-xl text-burgundy-700 mb-4">Candle Care Tips</h3>
+                             <ul className="space-y-3">
+                                {product.careInstructions && product.careInstructions.map((item, i) => (
+                                    <li key={i} className="flex gap-3">
+                                        <div className="min-w-[24px] h-6 flex items-center justify-center rounded-full bg-burgundy-700/10 text-burgundy-700 text-xs font-bold">
+                                            {i + 1}
+                                        </div>
+                                        <p>{item.instruction}</p>
+                                    </li>
+                                ))}
+                                {(!product.careInstructions || product.careInstructions.length === 0) && (
+                                    <p>No specific care instructions provided.</p>
+                                )}
+                             </ul>
+                        </motion.div>
+                    )}
+                </div>
             </div>
           </div>
         </section>
-      </main>
+        </main>
       <Footer />
     </>
   )

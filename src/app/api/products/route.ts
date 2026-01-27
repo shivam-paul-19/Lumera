@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const all = searchParams.get('all') // For admin to get all products
     const limit = searchParams.get('limit') || '10'
     const page = searchParams.get('page') || '1'
+    const slug = searchParams.get('slug')
 
     // Dynamically import Payload to avoid initialization issues
     const { getPayload } = await import('payload')
@@ -30,6 +31,10 @@ export async function GET(request: NextRequest) {
 
     if (featured === 'true') {
       where.featured = { equals: true }
+    }
+
+    if (slug) {
+      where.slug = { equals: slug }
     }
 
     const products = await payload.find({
