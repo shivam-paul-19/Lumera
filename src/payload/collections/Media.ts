@@ -19,7 +19,7 @@ export const Media: CollectionConfig = {
     delete: ({ req: { user } }) => !!user,
   },
   upload: {
-    staticDir: path.resolve(os.tmpdir(), 'media'),
+    staticDir: path.resolve(process.cwd(), 'public/media'),
     imageSizes: [
       {
         name: 'thumbnail',
