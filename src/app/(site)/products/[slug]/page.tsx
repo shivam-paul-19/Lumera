@@ -67,7 +67,7 @@ interface Product {
   isBestSeller?: boolean // bestSeller
   bestSeller?: boolean
   inventory?: {
-     quantity: number
+    quantity: number
   }
   promoTag?: string
 }

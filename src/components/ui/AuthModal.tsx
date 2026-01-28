@@ -144,7 +144,7 @@ export default function AuthModal() {
           >
             {/* Modal Content - Solid white background with border */}
             <div 
-              className="rounded-lg overflow-hidden shadow-2xl"
+              className="rounded-lg shadow-2xl flex flex-col max-h-[min(90vh,800px)] overflow-y-auto"
               style={{ 
                 backgroundColor: '#FFFFFF',
                 border: '1px solid rgba(128, 0, 32, 0.1)'
