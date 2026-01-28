@@ -80,5 +80,33 @@ export const Media: CollectionConfig = {
         position: 'sidebar',
       },
     },
+    {
+      name: 'fileData',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
+    },
+    {
+      name: 'mimeType',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
+    },
   ],
+  hooks: {
+    beforeChange: [
+      async ({ data, req }) => {
+        if (req.file && req.file.data) {
+          const base64Data = req.file.data.toString('base64');
+          data.fileData = base64Data;
+          data.mimeType = req.file.mimetype;
+        }
+        return data;
+      },
+    ],
+  },
 }

@@ -16,6 +16,7 @@ interface Product {
   }
   images: Array<{
     image: {
+      id: string
       url: string
       alt?: string
     }
@@ -139,7 +140,11 @@ export default function FeaturedProducts() {
 
 function ProductItem({ product }: { product: Product }) {
   const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0]
-  const [imgSrc, setImgSrc] = useState(primaryImage?.image?.url || '/placeholder-candle.jpg')
+  const [imgSrc, setImgSrc] = useState(
+    primaryImage?.image?.id 
+      ? `/api/media/${primaryImage.image.id}/view` 
+      : (primaryImage?.image?.url || '/placeholder-candle.jpg')
+  )
 
   return (
     <motion.div

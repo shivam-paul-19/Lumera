@@ -32,6 +32,7 @@ interface Product {
   }
   images: Array<{
     image: {
+      id: string
       url: string
       alt?: string
     }
@@ -177,7 +178,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   // Normalize Images
   // Ensure we have at least one image
   const displayImages = product.images && product.images.length > 0 
-    ? product.images.map(img => img.image.url) 
+    ? product.images.map(img => `/api/media/${img.image.id}/view`) 
     : ['/placeholder-candle.jpg']
 
   // Ensure stock
