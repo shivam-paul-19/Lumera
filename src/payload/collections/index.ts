@@ -5,3 +5,5 @@ export { Media } from './Media'
 export { Users } from './Users'
 export { Subscribers } from './Subscribers'
 export { Coupons } from './Coupons'
+export { OTPs } from './OTPs'
+

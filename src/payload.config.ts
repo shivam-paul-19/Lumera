@@ -12,7 +12,9 @@ import {
   Users,
   Subscribers,
   Coupons,
+  OTPs,
 } from './payload/collections'
+
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -54,8 +56,10 @@ export default buildConfig({
     Media,
     // Admin
     Users,
+    OTPs,
     // Marketing
     Subscribers,
+
   ],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || 'lumera-secret-key-change-in-production',

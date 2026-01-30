@@ -15,14 +15,21 @@ export default function AuthModal() {
     signup,
     loginWithGoogle,
     isLoading,
+    sendOTP,
+    verifyOTP,
+    resetPassword,
   } = useAuth()
+
 
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    otp: '',
+    confirmPassword: '',
   })
+
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -61,15 +68,24 @@ export default function AuthModal() {
       return
     }
 
-    if (authModalView !== 'forgot-password' && !formData.password.trim()) {
+    // Password validation - skip for forgot-password and verify-otp
+    const needsPassword = authModalView === 'login' || authModalView === 'signup' || authModalView === 'reset-password'
+    if (needsPassword && !formData.password.trim()) {
       setError('Please enter your password')
       return
     }
 
-    if (authModalView !== 'forgot-password' && formData.password.length < 6) {
+    if (needsPassword && formData.password.length < 6) {
       setError('Password must be at least 6 characters')
       return
     }
+
+    // OTP validation - only for verify-otp
+    if (authModalView === 'verify-otp' && (!formData.otp.trim() || formData.otp.length !== 6)) {
+      setError('Please enter the 6-digit OTP')
+      return
+    }
+
 
     try {
       if (authModalView === 'login') {
@@ -94,12 +110,36 @@ export default function AuthModal() {
           }, 1500)
         }
       } else if (authModalView === 'forgot-password') {
-        // Simulate password reset
-        setSuccess('Password reset link sent to your email!')
-        setTimeout(() => {
-          switchView('login')
-        }, 2000)
+        const result = await sendOTP(formData.email)
+        if (result.success) {
+          setSuccess('OTP sent to your email! Please check your inbox.')
+          setTimeout(() => switchView('verify-otp'), 1500)
+        } else {
+          setError(result.error || 'Failed to send OTP')
+        }
+      } else if (authModalView === 'verify-otp') {
+        const result = await verifyOTP(formData.email, formData.otp)
+        if (result.success) {
+          setSuccess('OTP verified successfully!')
+          setTimeout(() => switchView('reset-password'), 1000)
+        } else {
+          setError('Invalid OTP. Redirecting to home...')
+          setTimeout(() => handleClose(), 2000)
+        }
+      } else if (authModalView === 'reset-password') {
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match')
+          return
+        }
+        const result = await resetPassword(formData.email, formData.otp, formData.password)
+        if (result.success) {
+          setSuccess('Password reset successfully! You can now log in.')
+          setTimeout(() => switchView('login'), 2000)
+        } else {
+          setError(result.error || 'Failed to reset password')
+        }
       }
+
     } catch {
       setError('An error occurred. Please try again.')
     }
@@ -107,17 +147,21 @@ export default function AuthModal() {
 
   const handleClose = () => {
     setIsAuthModalOpen(false)
-    setFormData({ name: '', email: '', password: '' })
+    setFormData({ name: '', email: '', password: '', otp: '', confirmPassword: '' })
     setError('')
     setSuccess('')
   }
 
-  const switchView = (view: 'login' | 'signup' | 'forgot-password') => {
+
+  const switchView = (view: 'login' | 'signup' | 'forgot-password' | 'verify-otp' | 'reset-password') => {
     setAuthModalView(view)
     setError('')
     setSuccess('')
-    setFormData({ name: '', email: '', password: '' })
+    if (view === 'login' || view === 'signup' || view === 'forgot-password') {
+      setFormData({ ...formData, name: '', otp: '', password: '', confirmPassword: '' })
+    }
   }
+
 
   if (!isAuthModalOpen) return null
 
@@ -166,6 +210,9 @@ export default function AuthModal() {
                       {authModalView === 'login' && 'Welcome Back'}
                       {authModalView === 'signup' && 'Create Account'}
                       {authModalView === 'forgot-password' && 'Reset Password'}
+                      {authModalView === 'verify-otp' && 'Verify OTP'}
+                      {authModalView === 'reset-password' && 'New Password'}
+
                     </h2>
                     <p 
                       className="text-sm font-sans"
@@ -279,7 +326,9 @@ export default function AuthModal() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="Enter your email"
-                        className="w-full pl-12 pr-4 py-3.5 rounded-lg font-sans text-sm transition-all focus:outline-none"
+                        disabled={authModalView === 'verify-otp' || authModalView === 'reset-password'}
+                        className="w-full pl-12 pr-4 py-3.5 rounded-lg font-sans text-sm transition-all focus:outline-none disabled:opacity-50"
+
                         style={{ 
                           backgroundColor: '#F6F1EB',
                           border: '1px solid rgba(128, 0, 32, 0.15)',
@@ -297,8 +346,40 @@ export default function AuthModal() {
                     </div>
                   </div>
 
-                  {/* Password - Not for forgot password */}
-                  {authModalView !== 'forgot-password' && (
+                   {/* OTP - Only for verify-otp */}
+                  {authModalView === 'verify-otp' && (
+                    <div>
+                      <label 
+                        className="block text-sm font-sans mb-2"
+                        style={{ color: '#1C1C1C', opacity: 0.7 }}
+                      >
+                        6-Digit OTP
+                      </label>
+                      <div className="relative">
+                        <Lock 
+                          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                          style={{ color: '#800020', opacity: 0.4 }}
+                        />
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={formData.otp}
+                          onChange={(e) => setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '') })}
+                          placeholder="000000"
+                          className="w-full pl-12 pr-4 py-3.5 rounded-lg font-sans text-sm tracking-[0.5em] text-center transition-all focus:outline-none"
+                          style={{ 
+                            backgroundColor: '#F6F1EB',
+                            border: '1px solid rgba(128, 0, 32, 0.15)',
+                            color: '#1C1C1C'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Password - Not for forgot password or verify-otp */}
+                  {(authModalView === 'login' || authModalView === 'signup' || authModalView === 'reset-password') && (
+
                     <div>
                       <label 
                         className="block text-sm font-sans mb-2"
@@ -357,6 +438,37 @@ export default function AuthModal() {
                     </div>
                   )}
 
+                  {/* Confirm Password - Only for reset-password */}
+                  {authModalView === 'reset-password' && (
+                    <div className="mt-4">
+                      <label 
+                        className="block text-sm font-sans mb-2"
+                        style={{ color: '#1C1C1C', opacity: 0.7 }}
+                      >
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <Lock 
+                          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                          style={{ color: '#800020', opacity: 0.4 }}
+                        />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={formData.confirmPassword}
+                          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                          placeholder="Confirm your password"
+                          className="w-full pl-12 pr-12 py-3.5 rounded-lg font-sans text-sm transition-all focus:outline-none"
+                          style={{ 
+                            backgroundColor: '#F6F1EB',
+                            border: '1px solid rgba(128, 0, 32, 0.15)',
+                            color: '#1C1C1C'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+
                   {/* Submit Button */}
                   <button
                     type="submit"
@@ -384,7 +496,10 @@ export default function AuthModal() {
                       <>
                         {authModalView === 'login' && 'Sign In'}
                         {authModalView === 'signup' && 'Create Account'}
-                        {authModalView === 'forgot-password' && 'Send Reset Link'}
+                        {authModalView === 'forgot-password' && 'Send OTP'}
+                        {authModalView === 'verify-otp' && 'Verify OTP'}
+                        {authModalView === 'reset-password' && 'Reset Password'}
+
                       </>
                     )}
                   </button>
@@ -434,7 +549,8 @@ export default function AuthModal() {
                 </div>
 
                 {/* Divider */}
-                {authModalView !== 'forgot-password' && (
+                {(authModalView === 'login' || authModalView === 'signup') && (
+
                   <div className="relative my-6">
                     <div 
                       className="absolute inset-0 flex items-center"
@@ -463,7 +579,8 @@ export default function AuthModal() {
                 )}
 
                 {/* Social Login */}
-                {authModalView !== 'forgot-password' && (
+                {(authModalView === 'login' || authModalView === 'signup') && (
+
                   <button
                     type="button"
                     onClick={loginWithGoogle}

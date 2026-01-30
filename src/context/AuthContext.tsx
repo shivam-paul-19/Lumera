@@ -60,9 +60,9 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   isAuthModalOpen: boolean
-  authModalView: 'login' | 'signup' | 'forgot-password'
+  authModalView: 'login' | 'signup' | 'forgot-password' | 'verify-otp' | 'reset-password'
   setIsAuthModalOpen: (open: boolean) => void
-  setAuthModalView: (view: 'login' | 'signup' | 'forgot-password') => void
+  setAuthModalView: (view: 'login' | 'signup' | 'forgot-password' | 'verify-otp' | 'reset-password') => void
   login: (email: string, password: string) => Promise<AuthResult>
   signup: (name: string, email: string, password: string) => Promise<AuthResult>
   loginWithGoogle: () => Promise<void>
@@ -74,6 +74,10 @@ interface AuthContextType {
   setDefaultAddress: (id: string) => void
   changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>
   deleteAccount: () => Promise<void>
+  sendOTP: (email: string) => Promise<AuthResult>
+  verifyOTP: (email: string, otp: string) => Promise<AuthResult>
+  resetPassword: (email: string, otp: string, newPassword: string) => Promise<AuthResult>
+
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -83,7 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [authModalView, setAuthModalView] = useState<'login' | 'signup' | 'forgot-password'>('login')
+  const [authModalView, setAuthModalView] = useState<'login' | 'signup' | 'forgot-password' | 'verify-otp' | 'reset-password'>('login')
+
 
   // Sync session with user state
   useEffect(() => {
@@ -317,18 +322,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    const emailKey = user.email.toLowerCase()
-    const map = loadPasswordMap()
-    if (map[emailKey]) {
-      delete map[emailKey]
-      savePasswordMap(map)
-    }
+    try {
+      // Call the backend to delete the user record from the database
+      const response = await fetch('/api/auth/delete-account', {
+        method: 'POST',
+      })
 
-    // Clear stored user data and sign out
-    localStorage.removeItem(USER_DATA_STORAGE_KEY)
-    await signOut({ callbackUrl: '/' })
-    setUser(null)
+      if (!response.ok) {
+        const data = await response.json()
+        console.error('Failed to delete account on backend:', data.error)
+        // We might want to show an alert or return an error here, 
+        // but keeping it simple for now as per current structure.
+        return
+      }
+
+      // Success - local cleanup
+      const emailKey = user.email.toLowerCase()
+      const map = loadPasswordMap()
+      if (map[emailKey]) {
+        delete map[emailKey]
+        savePasswordMap(map)
+      }
+
+      // Clear stored user data and sign out
+      localStorage.removeItem(USER_DATA_STORAGE_KEY)
+      await signOut({ callbackUrl: '/' })
+      setUser(null)
+    } catch (error) {
+      console.error('Error during account deletion:', error)
+    }
   }
+
+  const sendOTP = async (email: string): Promise<AuthResult> => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+      setIsLoading(false)
+      if (response.ok) return { success: true }
+      return { success: false, error: data.error }
+    } catch (error: any) {
+      setIsLoading(false)
+      return { success: false, error: error.message || 'Failed to send OTP.' }
+    }
+  }
+
+  const verifyOTP = async (email: string, otp: string): Promise<AuthResult> => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      })
+      const data = await response.json()
+      setIsLoading(false)
+      if (response.ok) return { success: true }
+      return { success: false, error: data.error }
+    } catch {
+      setIsLoading(false)
+      return { success: false, error: 'Failed to verify OTP.' }
+    }
+  }
+
+  const resetPassword = async (email: string, otp: string, newPassword: string): Promise<AuthResult> => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, newPassword }),
+      })
+      const data = await response.json()
+      setIsLoading(false)
+      if (response.ok) {
+        // Update local password map so login pre-check passes
+        const emailKey = email.toLowerCase()
+        const map = loadPasswordMap()
+        map[emailKey] = { password: newPassword }
+        savePasswordMap(map)
+        return { success: true }
+      }
+      return { success: false, error: data.error }
+    } catch {
+      setIsLoading(false)
+      return { success: false, error: 'Failed to reset password.' }
+    }
+  }
+
 
   return (
     <AuthContext.Provider
@@ -351,8 +436,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDefaultAddress,
         changePassword,
         deleteAccount,
+        sendOTP,
+        verifyOTP,
+        resetPassword,
       }}
     >
+
       {children}
     </AuthContext.Provider>
   )
